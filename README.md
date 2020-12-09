@@ -20,4 +20,4 @@ CubiCasa backend coding assignment
 
 ### To submit this assignment
 - Publish your code under your own Github account
-- Send us an email that you've completed the task at openpositions@cubicasa.com and give a link to your repo
+- Send us an email that you've completed the task at openpositions@cubicasa.com with subject prefix **Backend Dev** and give a link to your repo
