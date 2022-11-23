@@ -15,8 +15,10 @@ CubiCasa backend coding assignment
 - [ ] Implement a Create for each _hub, team, and user_.
 - [ ] Implement a Search which will return _team and hub information_.
 - [ ] Implement a Join for user into team, and team into hub (for simplicity: one user belongs to one team, one team belongs to one hub).
+- [ ] Write the test cases
 - [ ] Provide a SQL script which creates tables needed for the API.
-- [ ] Good to use docker/docker-compose for local development setup(not mandatory)
+- [ ] Good to use `docker/docker-compose` for local development setup(not mandatory)
+- [ ] Good to provide the solution with security concern
 
 ### To submit this assignment
 - Publish your code under your own Github account
