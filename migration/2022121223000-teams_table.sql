@@ -4,7 +4,7 @@
 CREATE TABLE IF NOT EXISTS teams (
     id VARCHAR(50),
     "name" VARCHAR(100) NOT NULL,
-    "type" VARCHAR(100) NOT NULL,
+    "type" VARCHAR(100) NOT NULL UNIQUE,
     hub_id  VARCHAR(50) NOT NULL,
     created_at timestamptz NULL,
     updated_at timestamptz NULL,

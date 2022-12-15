@@ -1,9 +1,12 @@
 package app
 
 import (
+	"time"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"time"
+
+	"dev/internal/app/handler"
 )
 
 func NewChiHandeler() *chi.Mux {
@@ -14,7 +17,11 @@ func NewChiHandeler() *chi.Mux {
 		r.Use(middleware.Timeout(30 * time.Second))
 		r.Use()
 
-		r.Post("/user/batch", UploadData)
+		r.Post("/user", handler.UserCreate)
+		r.Post("/team", handler.TeamCreate)
+		r.Post("/hub", handler.HubCreate)
+
+		r.Get("/search", handler.Search)
 	})
 
 	return r

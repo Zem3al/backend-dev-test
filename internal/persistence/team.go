@@ -2,12 +2,15 @@ package persistence
 
 import (
 	"context"
-	"dev/internal/config"
-	"dev/internal/model"
+	"sync"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"sync"
-	"time"
+
+	"dev/internal/config"
+	"dev/internal/model"
+	gormI "dev/internal/persistence/gorm"
+	"dev/internal/persistence/mock"
 )
 
 var (
@@ -21,14 +24,14 @@ type TeamRepository interface {
 }
 
 func Team() TeamRepository {
-	if _payloadRepo == nil {
+	if _teamRepo == nil {
 		panic("persistence: teamRepo Repository not initiated")
 	}
 
 	return _teamRepo
 }
 
-func LoadTeamGroupRespository(ctx context.Context) (err error) {
+func LoadTeamGroupRepository(ctx context.Context) (err error) {
 	db, err := gorm.Open(postgres.New(postgres.Config{
 		DSN:                  config.Get().PostgresURL,
 		PreferSimpleProtocol: true, // disables implicit prepared statement usage
@@ -38,20 +41,15 @@ func LoadTeamGroupRespository(ctx context.Context) (err error) {
 		return err
 	}
 
-	sqlDB, err := db.DB()
-
-	if err != nil {
-		return err
-	}
-
-	sqlDB.SetMaxIdleConns(10)
-
-	sqlDB.SetMaxOpenConns(100)
-
-	sqlDB.SetConnMaxLifetime(time.Hour)
-
 	loadTeamRepoOnce.Do(func() {
-		_teamRepo, err = newTeamGormRepoPSQL(ctx, sqlDB)
+		_teamRepo, err = gormI.NewTeamGormRepoPSQL(ctx, db)
+	})
+	return
+}
+
+func MockTeamRepo() {
+	loadTeamRepoOnce.Do(func() {
+		_teamRepo = mock.NewMockTeam()
 	})
 	return
 }

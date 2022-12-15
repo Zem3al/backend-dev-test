@@ -2,12 +2,6 @@ package main
 
 import (
 	"context"
-	"dev/internal/app"
-	"dev/internal/config"
-	"dev/internal/persistence"
-	"dev/internal/service"
-	"github.com/joho/godotenv"
-	"github.com/urfave/cli/v2"
 	"log"
 	"os"
 	"os/signal"
@@ -15,6 +9,16 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/joho/godotenv"
+	migrate "github.com/rubenv/sql-migrate"
+	"github.com/urfave/cli/v2"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+
+	"dev/internal/app"
+	"dev/internal/config"
+	"dev/internal/persistence"
 )
 
 func main() {
@@ -49,6 +53,13 @@ func main() {
 		{
 			Name:  "migration",
 			Usage: "Migration",
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:    "dir",
+					Aliases: []string{"d"},
+					Value:   "./migration",
+				},
+			},
 			Subcommands: []*cli.Command{
 				{
 					Name:   "up",
@@ -103,69 +114,78 @@ func main() {
 }
 
 func MigrationUp(c *cli.Context) error {
+	log.Println("Migration Up")
+	mirgrationDir := c.String("dir")
+
+	migration := &migrate.FileMigrationSource{
+		Dir: mirgrationDir,
+	}
+
+	migrate.SetIgnoreUnknown(true)
+
 	if err := config.LoadFromEnv(); err != nil {
 		return err
 	}
 
-	ctx := c.Context
+	db, err := gorm.Open(postgres.New(postgres.Config{
+		DSN:                  config.Get().PostgresURL,
+		PreferSimpleProtocol: true, // disables implicit prepared statement usage
+	}), &gorm.Config{})
 
-	err := persistence.LoadPayloadRespositoryMock(ctx)
 	if err != nil {
 		return err
 	}
 
-	workerService := service.InitWorkerService()
+	conn, err := db.DB()
 
-	errChan := make(chan error)
-	defer close(errChan)
-
-	go func() {
-		errChan <- workerService.Start(ctx)
-	}()
-
-	go func() {
-		errChan <- app.Serve(ctx, c.String("addr"))
-	}()
-
-	for {
-		select {
-		case err := <-errChan:
-			return err
-		}
+	if err != nil {
+		return err
 	}
+
+	_, err = migrate.Exec(conn, "postgres", migration, migrate.Up)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
 }
 
 func MigrationDown(c *cli.Context) error {
+	log.Println("Migration Down")
+	mirgrationDir := c.String("dir")
+
+	migration := &migrate.FileMigrationSource{
+		Dir: mirgrationDir,
+	}
+
+	migrate.SetIgnoreUnknown(true)
+
 	if err := config.LoadFromEnv(); err != nil {
 		return err
 	}
 
-	ctx := c.Context
+	db, err := gorm.Open(postgres.New(postgres.Config{
+		DSN:                  config.Get().PostgresURL,
+		PreferSimpleProtocol: true, // disables implicit prepared statement usage
+	}), &gorm.Config{})
 
-	err := persistence.LoadPayloadRespositoryMock(ctx)
 	if err != nil {
 		return err
 	}
 
-	workerService := service.InitWorkerService()
+	conn, err := db.DB()
 
-	errChan := make(chan error)
-	defer close(errChan)
-
-	go func() {
-		errChan <- workerService.Start(ctx)
-	}()
-
-	go func() {
-		errChan <- app.Serve(ctx, c.String("addr"))
-	}()
-
-	for {
-		select {
-		case err := <-errChan:
-			return err
-		}
+	if err != nil {
+		return err
 	}
+
+	_, err = migrate.Exec(conn, "postgres", migration, migrate.Down)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func Serve(c *cli.Context) error {
@@ -175,28 +195,31 @@ func Serve(c *cli.Context) error {
 
 	ctx := c.Context
 
-	err := persistence.LoadPayloadRespositoryS3(ctx)
+	err := persistence.LoadHubGroupRepository(ctx)
 	if err != nil {
 		return err
 	}
 
-	workerService := service.InitWorkerService()
+	err = persistence.LoadTeamGroupRepository(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = persistence.LoadUserGroupRepository(ctx)
+	if err != nil {
+		return err
+	}
 
 	errChan := make(chan error)
 	defer close(errChan)
 
-	go func() {
-		errChan <- workerService.Start(ctx)
-	}()
+	err = app.Serve(ctx, c.String("addr"))
 
-	go func() {
-		errChan <- app.Serve(ctx, c.String("addr"))
-	}()
+	log.Println("Shutting down server")
 
-	for {
-		select {
-		case err := <-errChan:
-			return err
-		}
+	if err != nil {
+		return err
 	}
+
+	return nil
 }

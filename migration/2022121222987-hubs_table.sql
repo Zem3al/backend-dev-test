@@ -4,7 +4,7 @@
 CREATE TABLE IF NOT EXISTS hubs (
     id VARCHAR(50),
     "name" VARCHAR(100) NOT NULL,
-    location VARCHAR(500),
+    location VARCHAR(500) UNIQUE,
     created_at timestamptz NULL,
     updated_at timestamptz NULL,
 
