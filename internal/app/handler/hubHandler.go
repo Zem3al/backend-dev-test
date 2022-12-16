@@ -1,9 +1,10 @@
 package handler
 
 import (
-	"dev/internal/service"
 	"encoding/json"
 	"net/http"
+
+	"dev/internal/service"
 )
 
 func HubCreate(w http.ResponseWriter, r *http.Request) {

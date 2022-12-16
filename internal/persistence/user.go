@@ -33,7 +33,7 @@ func User() UserRepository {
 func LoadUserGroupRepository(ctx context.Context) (err error) {
 	db, err := gorm.Open(postgres.New(postgres.Config{
 		DSN:                  config.Get().PostgresURL,
-		PreferSimpleProtocol: true, // disables implicit prepared statement usage
+		PreferSimpleProtocol: false, // disables implicit prepared statement usage
 	}), &gorm.Config{})
 
 	if err != nil {

@@ -22,6 +22,7 @@ func NewChiHandeler() *chi.Mux {
 		r.Post("/hub", handler.HubCreate)
 
 		r.Get("/search", handler.Search)
+
 	})
 
 	return r

@@ -22,7 +22,6 @@ import (
 )
 
 func main() {
-
 	app := cli.NewApp()
 	app.Name = "Test app"
 	app.Usage = "Serve an api"

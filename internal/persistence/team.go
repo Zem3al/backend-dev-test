@@ -34,7 +34,7 @@ func Team() TeamRepository {
 func LoadTeamGroupRepository(ctx context.Context) (err error) {
 	db, err := gorm.Open(postgres.New(postgres.Config{
 		DSN:                  config.Get().PostgresURL,
-		PreferSimpleProtocol: true, // disables implicit prepared statement usage
+		PreferSimpleProtocol: false, // disables implicit prepared statement usage
 	}), &gorm.Config{})
 
 	if err != nil {

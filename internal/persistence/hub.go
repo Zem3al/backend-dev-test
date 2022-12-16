@@ -34,7 +34,7 @@ func Hub() HubRepository {
 func LoadHubGroupRepository(ctx context.Context) (err error) {
 	db, err := gorm.Open(postgres.New(postgres.Config{
 		DSN:                  config.Get().PostgresURL,
-		PreferSimpleProtocol: true, // disables implicit prepared statement usage
+		PreferSimpleProtocol: false,
 	}), &gorm.Config{})
 
 	if err != nil {
